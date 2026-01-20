@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/deploy.yml" />
+    <File Path=".gitignore" />
+  </Folder>
+  <Project Path="BlogApi/BlogApi.csproj" />
+</Solution>

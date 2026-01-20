@@ -1,0 +1,49 @@
+﻿name: Deploy BlogApi .NET 8
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy source to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "."
+          target: "/var/www/demo/be"
+
+      - name: Build and Run Docker
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Di chuyển vào thư mục chứa Dockerfile của BlogApi
+            cd /var/www/demo/be/BlogApi
+            
+            # Build Image
+            sudo docker build -t blog-api .
+
+            # Làm sạch container cũ
+            sudo docker stop blog-api-cont || true
+            sudo docker rm blog-api-cont || true
+
+            # Chạy container mới
+            sudo docker run -d \
+              --name blog-api-cont \
+              -p 3003:8080 \
+              --add-host=host.docker.internal:host-gateway \
+              -e ConnectionStrings__DefaultConnection="${{ secrets.DATABASE_URL }}" \
+              --restart always \
+              blog-api
