@@ -91,12 +91,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+// Kích hoạt CORS - Quan trọng: Phải đặt trước MapControllers
+app.UseCors("AllowAll");
 
 // 3. Sử dụng (Thứ tự rất quan trọng: Authentication trước Authorization)
 app.UseAuthentication();
 app.UseAuthorization();
-// Kích hoạt CORS - Quan trọng: Phải đặt trước MapControllers
-app.UseCors("AllowAll");
 app.MapControllers();
 
 
@@ -120,4 +120,4 @@ using (var scope = app.Services.CreateScope())
 
 app.Run();
 
-app.Run();
+
