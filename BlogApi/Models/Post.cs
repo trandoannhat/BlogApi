@@ -18,5 +18,9 @@
 
         // Quan hệ N-N: Một bài viết có nhiều tags
         public ICollection<Tag> Tags { get; set; } = new List<Tag>();
+
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+        public ICollection<PostLike> Likes { get; set; } = new List<PostLike>();
     }
 }

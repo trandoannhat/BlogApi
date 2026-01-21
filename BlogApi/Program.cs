@@ -108,8 +108,10 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<AppDbContext>();
         // Tự động chạy Migration nếu chưa chạy
         await context.Database.MigrateAsync();
+        Console.WriteLine("------> Đang bắt đầu Seeding...");
         // Chạy hàm Seeding
         await SeedData.Initialize(context);
+        Console.WriteLine("------> Seeding hoàn tất!");
     }
     catch (Exception ex)
     {
