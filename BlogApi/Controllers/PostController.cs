@@ -52,14 +52,36 @@ namespace BlogApi.Controllers
             return SuccessResponse(result, action);
         }
 
-
         [HttpGet("{slug}")]
         public async Task<IActionResult> GetBySlug(string slug)
         {
-            var post = await _uow.Posts.Query().FirstOrDefaultAsync(p => p.Slug == slug);
-            if (post == null) return NotFoundResponse("Get post detail");
+            var action = "Get post detail";
 
-            return SuccessResponse(post, "Get post detail");
+            // 1. Lấy dữ liệu từ DB kèm theo Category và Tags
+            var post = await _uow.Posts.Query()
+                .Include(p => p.Category)
+                .Include(p => p.Tags)
+                .FirstOrDefaultAsync(p => p.Slug == slug);
+
+            // 2. Kiểm tra nếu không tìm thấy
+            if (post == null) return NotFoundResponse("Không tìm thấy bài viết");
+
+            // 3. Map thủ công sang PostDetailDto để khớp với class bạn đã tạo
+            var postDetail = new PostDetailDto
+            {
+                Id = post.Id,
+                Title = post.Title,
+                Content = post.Content,
+                Slug = post.Slug,
+                Thumbnail = post.Thumbnail,
+                CategoryName = post.Category?.Name ?? "Không xác định",
+                Tags = post.Tags.Select(t => t.Name).ToList(),
+                CreatedAt = post.CreatedAt,
+                UpdatedAt = post.UpdatedAt
+            };
+
+            // 4. Trả về DTO thay vì Entity
+            return SuccessResponse(postDetail, action);
         }
 
         [HttpPost]
