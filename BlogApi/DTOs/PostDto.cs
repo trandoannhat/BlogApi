@@ -25,13 +25,18 @@
         public DateTime? UpdatedAt { get; set; }
     }
 
+    
+
     // Dùng để nhận dữ liệu từ Client khi tạo bài viết
+   
+
     public class PostCreateDto
     {
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
+        public string? Summary { get; set; }
         public string? Thumbnail { get; set; }
         public int CategoryId { get; set; }
-        public List<int> TagIds { get; set; } = new();
+        public List<int> TagIds { get; set; } = new List<int>(); // Nhận danh sách ID của các Tag
     }
 }
