@@ -18,17 +18,40 @@ namespace BlogApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
+            var action = "Get paged posts";
+
+            // 1. Tạo query cơ bản
             var query = _uow.Posts.Query().AsNoTracking();
+
+            // 2. Lấy tổng số lượng (để phân trang)
             int totalCount = await query.CountAsync();
 
-            var posts = await query.Include(p => p.Category)
+            // 3. Thực thi query và Map trực tiếp sang DTO để tránh lấy dư dữ liệu (Performance)
+            var posts = await query
+                .Include(p => p.Category)
+                .Include(p => p.Tags) // Đừng quên Include Tags nếu muốn hiển thị ở danh sách
                 .OrderByDescending(p => p.CreatedAt)
-                .Skip((pageNumber - 1) * pageSize).Take(pageSize)
-                .Select(p => new PostSummaryDto { /* map data */ }).ToListAsync();
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new PostSummaryDto
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Summary = p.Summary,
+                    Slug = p.Slug,
+                    Thumbnail = p.Thumbnail,
+                    CreatedAt = p.CreatedAt,
+                    CategoryName = p.Category != null ? p.Category.Name : "Không xác định",
+                    // Cách map List Tag sang List String đơn giản nhất
+                    Tags = p.Tags.Select(t => t.Name).ToList()
+                })
+                .ToListAsync();
 
+            // 4. Trả về kết quả phân trang
             var result = new PagedResult<PostSummaryDto>(posts, totalCount, pageNumber, pageSize);
-            return SuccessResponse(result, "Get paged posts");
+            return SuccessResponse(result, action);
         }
+
 
         [HttpGet("{slug}")]
         public async Task<IActionResult> GetBySlug(string slug)
