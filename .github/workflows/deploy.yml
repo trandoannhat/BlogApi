@@ -2,16 +2,19 @@
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout source
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Copy source code lên VPS
       - name: Copy source to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -22,7 +25,8 @@ jobs:
           source: "."
           target: "/var/www/demo/be"
 
-      - name: Build and Run Docker
+      # 3. SSH vào VPS, build & chạy Docker
+      - name: Build and Run Docker on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
@@ -31,18 +35,25 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -e
+
+            echo "👉 Go to project directory"
             cd /var/www/demo/be/BlogApi
 
+            echo "🛑 Stop & remove old container"
             docker stop blog-api-cont || true
             docker rm blog-api-cont || true
+
+            echo "🧹 Remove old image"
             docker rmi blog-api || true
 
+            echo "🐳 Build new image"
             docker build -t blog-api .
 
+            echo "🚀 Run container"
             docker run -d \
               --name blog-api-cont \
+              --network host \
               --restart unless-stopped \
-              -p 3005:8080 \
               -e ASPNETCORE_ENVIRONMENT=Production \
               -e ConnectionStrings__DefaultConnection="${{ secrets.DATABASE_URL }}" \
               -e Jwt__Key="${{ secrets.JWT_KEY }}" \
@@ -53,6 +64,11 @@ jobs:
               -e CloudinarySettings__ApiSecret="${{ secrets.CLOUDINARY_API_SECRET }}" \
               blog-api
 
+            echo "⏳ Wait for app start..."
             sleep 5
+
+            echo "📦 Running containers:"
             docker ps
-            docker logs blog-api-cont --tail 50
+
+            echo "📜 App logs:"
+            docker logs blog-api-cont --tail 100
