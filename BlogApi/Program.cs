@@ -31,7 +31,8 @@ builder.Services.AddCors(options => {
 
 //register services for UnitOfWork and repositories
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IPostService,PostService>(); // Hoặc dùng PostService nếu muốn đơn giản
+// Chỉ định rõ dùng Interface từ folder Interfaces
+builder.Services.AddScoped<BlogApi.Interfaces.IPostService, BlogApi.Services.PostService>();
 // Đăng ký MediaService (Nhớ tạo file Service ở bước dưới trước)
 builder.Services.AddScoped<IMediaService, MediaService>();
 // Add services to the container.
