@@ -12,6 +12,7 @@ namespace BlogApi.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<PostLike> PostLikes { get; set; }
+        public DbSet<Media> Medias { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

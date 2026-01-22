@@ -32,11 +32,15 @@ builder.Services.AddCors(options => {
 //register services for UnitOfWork and repositories
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPostService,PostService>(); // Hoặc dùng PostService nếu muốn đơn giản
+// Đăng ký MediaService (Nhớ tạo file Service ở bước dưới trước)
+builder.Services.AddScoped<IMediaService, MediaService>();
 // Add services to the container.
 
 //Register DI
 // Đăng ký cấu hình Cloudinary
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

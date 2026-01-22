@@ -7,7 +7,8 @@ namespace BlogApi.Interfaces
         IGenericRepository<Post> Posts { get; }
         IGenericRepository<Category> Categories { get; }
         IGenericRepository<Tag> Tags { get; }
-        IGenericRepository<User> Users { get; } 
+        IGenericRepository<User> Users { get; }
+        IGenericRepository<Media> Medias { get; }
         Task<int> CompleteAsync(); // SaveChanges
     }
 }

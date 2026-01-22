@@ -1,6 +1,6 @@
 ﻿using BlogApi.DTOs;
 
-namespace BlogApi.Services
+namespace BlogApi.Interfaces
 {
     public interface IPostService
     {
