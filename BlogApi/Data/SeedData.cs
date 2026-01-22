@@ -22,7 +22,7 @@ namespace BlogApi.Data
             };
             await context.Categories.AddRangeAsync(categories);
 
-            // 3. Seed Tags (Thẻ)
+            // 3. Seed Tags (Thẻ tag)
             var tags = new List<Tag>
             {
                 new Tag { Name = "C#", Slug = "c-sharp" },
