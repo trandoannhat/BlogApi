@@ -130,11 +130,25 @@ namespace BlogApi.Controllers
                 await _uow.Posts.AddAsync(post);
                 await _uow.CompleteAsync();
 
-                return SuccessResponse(post, action, "Đăng bài viết mới thành công!");
+                // CHỈ TRẢ VỀ DỮ LIỆU CẦN THIẾT (Không trả về nguyên Entity post)
+                var result = new
+                {
+                    Id = post.Id,
+                    Title = post.Title,
+                    Slug = post.Slug,
+                    CreatedAt = post.CreatedAt
+                };
+
+                return SuccessResponse(result, action, "Đăng bài viết mới thành công!");
             }
             catch (Exception ex)
             {
-                return ErrorResponse(action, "Lỗi khi lưu bài viết: " + ex.Message);
+                // Log lỗi thật ra Console để xem trên Docker logs
+                Console.WriteLine($"Lỗi tại PostsController: {ex.Message}");
+                if (ex.InnerException != null)
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+
+                return ErrorResponse(action, "Lỗi Database: " + (ex.InnerException?.Message ?? ex.Message));
             }
         }
     }

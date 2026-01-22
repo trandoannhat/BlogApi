@@ -95,6 +95,64 @@ namespace BlogApi.Controllers
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken(TokenResponseDto dto)
+        {
+            string action = "RefreshToken";
+            var user = await _uow.Users.Query()
+                .FirstOrDefaultAsync(u => u.RefreshToken == dto.RefreshToken);
+
+            if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+                return Unauthorized(new ApiResponse<string>(action, "Phiên đăng nhập hết hạn, vui lòng login lại"));
+
+            // Cấp mới
+            var response = new TokenResponseDto
+            {
+                AccessToken = GenerateAccessToken(user),
+                RefreshToken = GenerateRefreshToken()
+            };
+
+            // Cập nhật lại vào DB (Rotate refresh token để bảo mật)
+            user.RefreshToken = response.RefreshToken;
+            await _uow.CompleteAsync();
+
+            return SuccessResponse(response, action, "Lấy token mới thành công");
+        }
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            // Lấy Id người dùng từ Token đang sử dụng thông qua Claim
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+
+            var user = await _uow.Users.GetByIdAsync(int.Parse(userId));
+            if (user != null)
+            {
+                user.RefreshToken = null; // Vô hiệu hóa refresh token
+                await _uow.CompleteAsync();
+            }
+
+            return SuccessResponse<string>(null, "Logout", "Đã đăng xuất phía Server");
+        }
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            // Nếu dữ liệu không hợp lệ (ví dụ mật khẩu quá ngắn), 
+            // ASP.NET Core sẽ tự động trả về lỗi trước khi vào đến đây.
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var user = await _uow.Users.GetByIdAsync(userId);
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.OldPassword, user.PasswordHash))
+            {
+                return ErrorResponse("ChangePassword", "Mật khẩu cũ không chính xác");
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            await _uow.CompleteAsync();
+
+            return SuccessResponse<string>(null, "ChangePassword", "Đổi mật khẩu thành công");
+        }
     }
 
 }
