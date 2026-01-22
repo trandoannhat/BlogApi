@@ -20,6 +20,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           source: "."
           target: "/var/www/demo/be"
+
       - name: Build and Run Docker
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -29,16 +30,20 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd /var/www/demo/be/BlogApi
-            
-            # 1. Dọn dẹp sạch sẽ bản cũ
             docker rm -f blog-api-cont || true
             docker rmi blog-api || true
-            
-            # 2. Build bản mới không cache
             docker build --no-cache -t blog-api .
-
-            # 3. Chạy container (Dòng này phải viết liền, không xuống dòng để tránh lỗi bash)
-            docker run -d --name blog-api-cont -p 3005:8080 --add-host=host.docker.internal:host-gateway --restart always -e ConnectionStrings__DefaultConnection="${{ secrets.DATABASE_URL }}" -e Jwt__Key="${{ secrets.JWT_KEY }}" -e Jwt__Issuer="nhatdev.top" -e Jwt__Audience="nhatdev_users" -e CloudinarySettings__CloudName="${{ secrets.CLOUDINARY_NAME }}" -e CloudinarySettings__ApiKey="${{ secrets.CLOUDINARY_API_KEY }}" -e CloudinarySettings__ApiSecret="${{ secrets.CLOUDINARY_API_SECRET }}" -e ASPNETCORE_ENVIRONMENT=Production blog-api
-
-            # 4. Quét rác image thừa
-            docker image prune -f
+            
+            # Chạy lệnh Docker run (Dùng dấu nháy đơn bọc ngoài Secret để an toàn nhất)
+            docker run -d --name blog-api-cont -p 3005:8080 --add-host=host.docker.internal:host-gateway --restart always \
+            -e ConnectionStrings__DefaultConnection='${{ secrets.DATABASE_URL }}' \
+            -e Jwt__Key='${{ secrets.JWT_KEY }}' \
+            -e Jwt__Issuer="nhatdev.top" \
+            -e Jwt__Audience="nhatdev_users" \
+            -e CloudinarySettings__CloudName='${{ secrets.CLOUDINARY_NAME }}' \
+            -e CloudinarySettings__ApiKey='${{ secrets.CLOUDINARY_API_KEY }}' \
+            -e CloudinarySettings__ApiSecret='${{ secrets.CLOUDINARY_API_SECRET }}' \
+            -e ASPNETCORE_ENVIRONMENT=Production blog-api
+            
+            sleep 5
+            docker ps -a
