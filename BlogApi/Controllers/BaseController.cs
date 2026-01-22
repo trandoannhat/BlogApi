@@ -25,5 +25,11 @@ namespace BlogApi.Controllers
         }
         // Lấy tên hàm đang chạy
         protected string CurrentAction => ControllerContext.ActionDescriptor.ActionName;
+
+        // Thêm hàm này vào BaseController để dùng cho các trường hợp không cần trả về data
+        protected IActionResult SuccessResponse(string message)
+        {
+            return SuccessResponse<object>(null, message);
+        }
     }
 }
