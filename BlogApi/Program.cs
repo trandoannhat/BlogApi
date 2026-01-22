@@ -21,7 +21,7 @@ builder.Services.AddCors(options => {
                 "https://admin.nhatdev.top",  // Admin trên Server
                 "https://nhatdev.top",        // Web trên Server
                 "http://localhost:5173",      // React/Vite Local
-                "http://localhost:3000"       // React cũ Local
+                "http://localhost:3000"       // React cũ Local ok
               )
               .AllowAnyMethod()
               .AllowAnyHeader()
