@@ -29,17 +29,16 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            # 1. Di chuyển vào thư mục chứa Dockerfile
             cd /var/www/demo/be/BlogApi
             
-            # 2. Xây dựng Docker Image (Sử dụng --no-cache để đảm bảo lấy code mới nhất)
+            # Xóa container và image cũ trước khi build
+            docker rm -f blog-api-cont || true
+            docker rmi blog-api || true
+            
+            # Build bản mới nhất
             docker build --no-cache -t blog-api .
 
-            # 3. Dừng và xóa container cũ
-            docker rm -f blog-api-cont || true
-
-            # 4. Chạy Container với đầy đủ các biến môi trường mới
-            # Lưu ý: Sử dụng gạch dưới kép __ để ánh xạ vào cấu hình lồng nhau của .NET
+            # Chạy container với các biến môi trường
             docker run -d \
               --name blog-api-cont \
               -p 3005:8080 \
@@ -55,5 +54,5 @@ jobs:
               -e ASPNETCORE_ENVIRONMENT=Production \
               blog-api
 
-            # 5. Dọn dẹp các Image cũ không dùng đến để tránh đầy ổ cứng VPS
+            # Dọn rác
             docker image prune -f
