@@ -2,15 +2,18 @@
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Copy source code lên VPS
       - name: Copy source to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -21,29 +24,47 @@ jobs:
           source: "."
           target: "/var/www/demo/be"
 
-      - name: Build and Run Docker
+      # Build & Run Docker on VPS
+      - name: Build and Run Docker on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
+            set -e
+
+            echo "👉 Go to project folder"
             cd /var/www/demo/be/BlogApi
+
+            echo "👉 Stop & remove old container"
             docker rm -f blog-api-cont || true
+
+            echo "👉 Remove old image"
             docker rmi blog-api || true
+
+            echo "👉 Build new Docker image"
             docker build --no-cache -t blog-api .
-            
-            # Chạy lệnh Docker run (Dùng dấu nháy đơn bọc ngoài Secret để an toàn nhất)
-            docker run -d --name blog-api-cont -p 3005:8080 --add-host=host.docker.internal:host-gateway --restart always \
-            -e ConnectionStrings__DefaultConnection='${{ secrets.DATABASE_URL }}' \
-            -e Jwt__Key='${{ secrets.JWT_KEY }}' \
-            -e Jwt__Issuer="nhatdev.top" \
-            -e Jwt__Audience="nhatdev_users" \
-            -e CloudinarySettings__CloudName='${{ secrets.CLOUDINARY_NAME }}' \
-            -e CloudinarySettings__ApiKey='${{ secrets.CLOUDINARY_API_KEY }}' \
-            -e CloudinarySettings__ApiSecret='${{ secrets.CLOUDINARY_API_SECRET }}' \
-            -e ASPNETCORE_ENVIRONMENT=Production blog-api
-            
+
+            echo "👉 Run new container"
+            docker run -d \
+              --name blog-api-cont \
+              --restart always \
+              -p 3005:8080 \
+              -e ASPNETCORE_URLS=http://0.0.0.0:8080 \
+              -e ASPNETCORE_ENVIRONMENT=Production \
+              -e ConnectionStrings__DefaultConnection='${{ secrets.DATABASE_URL }}' \
+              -e Jwt__Key='${{ secrets.JWT_KEY }}' \
+              -e Jwt__Issuer=nhatdev.top \
+              -e Jwt__Audience=nhatdev_users \
+              -e CloudinarySettings__CloudName='${{ secrets.CLOUDINARY_NAME }}' \
+              -e CloudinarySettings__ApiKey='${{ secrets.CLOUDINARY_API_KEY }}' \
+              -e CloudinarySettings__ApiSecret='${{ secrets.CLOUDINARY_API_SECRET }}' \
+              blog-api
+
+            echo "⏳ Wait 5 seconds for container startup"
             sleep 5
+
+            echo "👉 Docker container status"
             docker ps -a
