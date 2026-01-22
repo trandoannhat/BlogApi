@@ -1,25 +1,38 @@
-﻿## Thư mục Build của .NET
-[Bb]in/
-[Oo]bj/
+﻿# =========================
+# .NET build artifacts
+# =========================
+**/bin/
+**/obj/
 
-## Thư mục cấu hình của Visual Studio
+# =========================
+# Visual Studio / IDE
+# =========================
 .vs/
+.vscode/
 *.user
 *.userosscache
 *.sln.docstates
 
-## File cấu hình cá nhân (Tránh lộ mật khẩu)
+# =========================
+# Environment / secrets
+# =========================
+.env
 appsettings.Development.json
 appsettings.Local.json
 
-## Thư mục của Docker (nếu có)
-.dockerignore
-
-## Thư mục của Node.js (Nếu có frontend trong cùng solution)
+# =========================
+# Node.js (if any)
+# =========================
 node_modules/
 dist/
-.env
 
-## Các file tạm của hệ thống
+# =========================
+# OS files
+# =========================
 .DS_Store
 Thumbs.db
+
+# =========================
+# Git
+# =========================
+.git/

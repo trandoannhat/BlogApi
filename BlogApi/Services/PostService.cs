@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlogApi.Services
 {
+    //lạ thât đâu có trùng namspace
     public class PostService : IPostService
     {
         private readonly IUnitOfWork _uow;
