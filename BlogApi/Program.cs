@@ -32,7 +32,9 @@ builder.Services.AddCors(options => {
 //register services for UnitOfWork and repositories
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Chỉ định rõ dùng Interface từ folder Interfaces
-builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<
+    BlogApi.Interfaces.IPostService,
+    BlogApi.Services.PostService>();
 
 // Đăng ký MediaService (Nhớ tạo file Service ở bước dưới trước)
 builder.Services.AddScoped<IMediaService, MediaService>();
