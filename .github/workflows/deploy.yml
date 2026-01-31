@@ -10,11 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout source
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Copy source code lên VPS
       - name: Copy source to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -22,11 +20,10 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           key: ${{ secrets.SSH_KEY }}
-          source: "."
-          target: "/var/www/demo/be"
+          source: "BlogApi"
+          target: "/var/www/blog-api"
 
-      # 3. SSH vào VPS, build & chạy Docker
-      - name: Build and Run Docker on VPS
+      - name: Build & Run Docker
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
@@ -35,25 +32,18 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -e
+            cd /var/www/blog-api/BlogApi
 
-            echo "👉 Go to project directory"
-            cd /var/www/demo/be/BlogApi
+            docker stop blog-api || true
+            docker rm blog-api || true
+            docker rmi blog-api:latest || true
 
-            echo "🛑 Stop & remove old container"
-            docker stop blog-api-cont || true
-            docker rm blog-api-cont || true
+            docker build -t blog-api:latest .
 
-            echo "🧹 Remove old image"
-            docker rmi blog-api || true
-
-            echo "🐳 Build new image"
-            docker build -t blog-api .
-
-            echo "🚀 Run container"
             docker run -d \
-              --name blog-api-cont \
-              --network host \
+              --name blog-api \
               --restart unless-stopped \
+              -p 8080:8080 \
               -e ASPNETCORE_ENVIRONMENT=Production \
               -e ConnectionStrings__DefaultConnection="${{ secrets.DATABASE_URL }}" \
               -e Jwt__Key="${{ secrets.JWT_KEY }}" \
@@ -62,13 +52,7 @@ jobs:
               -e CloudinarySettings__CloudName="${{ secrets.CLOUDINARY_NAME }}" \
               -e CloudinarySettings__ApiKey="${{ secrets.CLOUDINARY_API_KEY }}" \
               -e CloudinarySettings__ApiSecret="${{ secrets.CLOUDINARY_API_SECRET }}" \
-              blog-api
+              blog-api:latest
 
-            echo "⏳ Wait for app start..."
-            sleep 5
-
-            echo "📦 Running containers:"
             docker ps
-
-            echo "📜 App logs:"
-            docker logs blog-api-cont --tail 100
+            docker logs blog-api --tail 50
