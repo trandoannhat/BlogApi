@@ -56,4 +56,15 @@
         public int CategoryId { get; set; }
         public List<int> TagIds { get; set; } = new List<int>(); // Nhận danh sách ID của các Tag
     }
+    public class PostUpdateDto
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public string? Summary { get; set; }
+        public string? Thumbnail { get; set; }
+        public int CategoryId { get; set; }
+        public List<int> TagIds { get; set; } = new();
+        public bool IsPublished { get; set; }
+    }
+
 }
