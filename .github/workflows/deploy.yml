@@ -20,8 +20,9 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           key: ${{ secrets.SSH_KEY }}
-          source: "BlogApi"
+          source: "BlogApi/**"
           target: "/var/www/blog-api"
+          strip_components: 1
 
       - name: Build & Run Docker
         uses: appleboy/ssh-action@v1.0.3
@@ -32,11 +33,10 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -e
-            cd /var/www/blog-api/BlogApi
+            cd /var/www/blog-api
 
             docker stop blog-api || true
             docker rm blog-api || true
-            docker rmi blog-api:latest || true
 
             docker build -t blog-api:latest .
 
